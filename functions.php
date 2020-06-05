@@ -28,7 +28,9 @@ add_action('admin_bar_menu', 'add_item', 100);
 function add_item($admin_bar)
 {
   global $pagenow;
-  $admin_bar->add_menu(array('id' => 'rebuild-frontend', 'title' => 'Rebuild Frontend', 'href' => '#'));
+  $admin_bar->add_menu(array('id' => 'rebuild-frontend', 'title' => 'Rebuild Frontend', 'href' => '#', 'meta' => [
+    'html' => "<span style='opacity: 0'>" . get_option('frontend-dir') . '</span>'
+  ]));
 }
 
 add_action('admin_footer', 'clickHandlerRebuildButton');
@@ -52,7 +54,8 @@ function clickHandlerRebuildButton()
       let originalText = rebuildBtn.textContent;
       rebuildBtn.textContent = "Rebuilding...";
 
-      let name = window.location.host.split(".")[0];
+      // reads frontend directory name from hidden span next to it.
+      let name = rebuildBtn.nextElementSibling.textContent;
       fetch(`https://rebuilds.codebirds-apiserver.nl/${name}`, {
           method: "POST",
         })
@@ -135,4 +138,22 @@ function headless_mode_disable_front_end()
     headless_mode_redirect($new_url, true);
     exit;
   }
+}
+
+// Add custom settings to general settings
+add_filter('admin_init', 'register_fields');
+
+function register_fields()
+{
+  register_setting('general', 'frontend-dir', 'esc_attr');
+  add_settings_field('frontend-dir', '<label for="frontend-dir">' . __('Frontend Directory', 'frontend-dir') . '</label>', 'print_custom_field', 'general');
+}
+
+function print_custom_field()
+{
+  $host = explode(".", $_SERVER['HTTP_HOST']);
+  $defaultValue = $host[count($host) - 2]; // get the second-last item in the array to strip of also the TLD
+
+  $value = get_option('frontend-dir', $defaultValue);
+  echo '<input type="text" id="frontend-dir" name="frontend-dir" value="' . $value . '" />';
 }
