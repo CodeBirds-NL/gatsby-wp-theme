@@ -2,6 +2,24 @@
 add_theme_support('custom-logo');
 add_theme_support('menus');
 
+// Add custom settings to general settings
+add_filter('admin_init', 'register_fields');
+
+function register_fields()
+{
+  register_setting('general', 'frontend-dir', 'esc_attr');
+  add_settings_field('frontend-dir', '<label for="frontend-dir">' . __('Frontend Directory', 'frontend-dir') . '</label>', 'print_custom_field', 'general');
+}
+
+function print_custom_field()
+{
+  $host = explode(".", $_SERVER['HTTP_HOST']);
+  $defaultValue = $host[count($host) - 2]; // get the second-last item in the array to strip of also the TLD
+
+  $value = get_option('frontend-dir', $defaultValue);
+  echo '<input type="text" id="frontend-dir" name="frontend-dir" value="' . $value . '" />';
+}
+
 // Add site logo to rest api
 add_action('rest_api_init', 'add_logo_to_JSON');
 
@@ -82,6 +100,28 @@ function clickHandlerRebuildButton()
 <?php
 }
 
+// Make ACF return null instead of false when value doesn't exist so Graphql won't throw an error
+add_filter('acf/format_value', 'acf_nullify_empty', 100, 3);
+
+if (!function_exists('acf_nullify_empty')) {
+  /**
+   * Return `null` if an empty value is returned from ACF.
+   *
+   * @param mixed $value
+   * @param mixed $post_id
+   * @param array $field
+   *
+   * @return mixed
+   */
+  function acf_nullify_empty($value, $post_id, $field)
+  {
+    if (empty($value)) {
+      return null;
+    }
+    return $value;
+  }
+}
+
 // HEADLESS MODE CONFIGURATION
 if (!defined('HEADLESS_MODE_CLIENT_URL')) {
   $host = $_SERVER['HTTP_HOST'];
@@ -138,22 +178,4 @@ function headless_mode_disable_front_end()
     headless_mode_redirect($new_url, true);
     exit;
   }
-}
-
-// Add custom settings to general settings
-add_filter('admin_init', 'register_fields');
-
-function register_fields()
-{
-  register_setting('general', 'frontend-dir', 'esc_attr');
-  add_settings_field('frontend-dir', '<label for="frontend-dir">' . __('Frontend Directory', 'frontend-dir') . '</label>', 'print_custom_field', 'general');
-}
-
-function print_custom_field()
-{
-  $host = explode(".", $_SERVER['HTTP_HOST']);
-  $defaultValue = $host[count($host) - 2]; // get the second-last item in the array to strip of also the TLD
-
-  $value = get_option('frontend-dir', $defaultValue);
-  echo '<input type="text" id="frontend-dir" name="frontend-dir" value="' . $value . '" />';
 }
