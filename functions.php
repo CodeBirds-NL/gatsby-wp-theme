@@ -101,10 +101,11 @@ function clickHandlerRebuildButton()
 }
 
 /* THIS APPLIES TO THE SAVE/PUBLISH BUTTONS TRIGGERED BY CTRL/CMD + S */
-add_action('admin_footer', 'addKeyboardShortcut')
+add_action('admin_footer', 'addKeyboardShortcut');
 
-function addKeyboardShortcut() {
-  ?>
+function addKeyboardShortcut()
+{
+?>
   <script type="text/javascript">
     const body = document.body;
 
@@ -112,30 +113,30 @@ function addKeyboardShortcut() {
     let doingClick = false;
 
     // let JSie know on which page to seek the buttons :)
-    if(body.classList.contains('post-php')) {
+    if (body.classList.contains('post-php')) {
       // now we're on a page where save buttons appear, let's seek for it!
       button = body.querySelector("input[name='save']")
-    } else if(body.classList.contains('nav-menus-php')) {
+    } else if (body.classList.contains('nav-menus-php')) {
       button = body.querySelector("input[name='save_menu']")
-    } else if(body.classList.contains('theme-editor-php' || 'plugin-editor-php')) {
+    } else if (body.classList.contains('theme-editor-php' || 'plugin-editor-php')) {
       button = body.querySelector("input[name='submit']")
     }
 
-    if(button) {  
+    if (button) {
       document.addEventListener('keydown', (e) => {
-        if(e.ctrlKey || e.metaKey && e.key === "s") {
-          if(doingClick) return
+        if (e.ctrlKey || e.metaKey && e.key === "s") {
+          if (doingClick) return
           doingClick = true
 
           // click that button!
           button.click();
           e.preventDefault();
-		      doingClick = false
+          doingClick = false
         }
       })
     }
   </script>
-  <?php
+<?php
 }
 
 // Make ACF return null instead of false when value doesn't exist so Graphql won't throw an error
